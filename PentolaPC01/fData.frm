@@ -11,6 +11,7 @@ Begin VB.Form fData
    ScaleWidth      =   4680
    StartUpPosition =   2  'CenterScreen
    Begin VB.TextBox tComPort 
+      BackColor       =   &H00FFFFFF&
       Height          =   285
       Left            =   2160
       TabIndex        =   16
@@ -19,6 +20,7 @@ Begin VB.Form fData
       Width           =   1455
    End
    Begin VB.TextBox tKchamber 
+      BackColor       =   &H00FFFFFF&
       Height          =   285
       Left            =   2160
       TabIndex        =   13
@@ -27,6 +29,7 @@ Begin VB.Form fData
       Width           =   1455
    End
    Begin VB.ComboBox ComboSensors 
+      BackColor       =   &H00FFFFFF&
       Height          =   315
       Left            =   2160
       TabIndex        =   12
@@ -34,6 +37,7 @@ Begin VB.Form fData
       Width           =   1455
    End
    Begin VB.TextBox tWind 
+      BackColor       =   &H00FFFFFF&
       Height          =   285
       Left            =   2160
       TabIndex        =   11
@@ -42,6 +46,7 @@ Begin VB.Form fData
       Width           =   1455
    End
    Begin VB.TextBox tHum 
+      BackColor       =   &H00FFFFFF&
       Height          =   285
       Left            =   2160
       TabIndex        =   10
@@ -50,6 +55,7 @@ Begin VB.Form fData
       Width           =   1455
    End
    Begin VB.TextBox tTemper 
+      BackColor       =   &H00FFFFFF&
       Height          =   285
       Left            =   2160
       TabIndex        =   9
@@ -58,6 +64,7 @@ Begin VB.Form fData
       Width           =   1455
    End
    Begin VB.TextBox tPressure 
+      BackColor       =   &H00FFFFFF&
       Height          =   285
       Left            =   2160
       TabIndex        =   8
@@ -66,6 +73,7 @@ Begin VB.Form fData
       Width           =   1455
    End
    Begin VB.TextBox tLocation 
+      BackColor       =   &H00FFFFFF&
       Height          =   285
       Left            =   2160
       TabIndex        =   7
@@ -160,11 +168,17 @@ Private Sub bOk_Click()
     AtmPressure = tPressure.Text
     AtmTemp = tTemper.Text
     WindVelocity = tWind.Text
-    CommPort = Val(tComPort.Text)
+    ComPort = Val(tComPort.Text)
+    Kchamber = tKchamber.Text
     CloseCom
-    fMain.MSComm1.CommPort = CommPort
-    WriteINI "CommSettings", "Commport", CommPort, INIFile
+    fMain.MSComm1.CommPort = ComPort
+    WriteINI "CommSettings", "Comport", ComPort, INIFile
+    WriteINI "Sensor", "CardType", CO2sensor, INIFile
+    WriteINI "Sensor", "K", Kchamber, INIFile
+    
     SetupDone = True
+    'qui scrivo che scheda uso nella label del mai
+    fMain.lCardType.Caption = CO2sensor + " K=" + Str(Kchamber)
     Me.Hide
     Unload Me
     fMain.Show
@@ -184,9 +198,15 @@ Private Sub Form_Load()
     ComboSensors.AddItem "Gascard II 3%"
     ComboSensors.AddItem "Gascard II 1%"
     ComboSensors.AddItem "Gascard II 3000 ppm"
-    ComboSensors.AddItem "Licor 820"
-    ComboSensors.AddItem "Mastrolia 10000"
-    ComboSensors.AddItem "Mastrolia 100%"
-    ComboSensors.AddItem "Santino"
-
+    'ComboSensors.AddItem "Licor 820"
+    'ComboSensors.AddItem "Mastrolia 10000"
+    'ComboSensors.AddItem "Mastrolia 100%"
+    ComboSensors.AddItem "Santino 10000ppm"
+    ComboSensors.AddItem "Santino 100%"
+    
+    If ComPort > 0 Then tComPort.Text = ComPort
+    If CO2sensor <> "" Then ComboSensors.SelText = CO2sensor
+    If Kchamber <> 0 Then tKchamber.Text = Kchamber
+ 
+    
 End Sub

@@ -66,3 +66,5 @@ Public y1 As Integer
 Public y2 As Integer
 
 Public CommType As String
+Public Interval As Single
+Public Kchamber As Single

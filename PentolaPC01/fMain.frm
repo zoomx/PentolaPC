@@ -13,6 +13,14 @@ Begin VB.Form fMain
    ScaleHeight     =   6300
    ScaleWidth      =   10395
    StartUpPosition =   2  'CenterScreen
+   Begin VB.CommandButton bDefreeze 
+      Caption         =   "&Defreez"
+      Height          =   375
+      Left            =   0
+      TabIndex        =   20
+      Top             =   5280
+      Width           =   735
+   End
    Begin VB.CommandButton bXauto 
       Caption         =   "auto"
       Height          =   375
@@ -63,6 +71,15 @@ Begin VB.Form fMain
    End
    Begin VB.CommandButton bLoad 
       Caption         =   "&Load"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   375
       Left            =   3000
       TabIndex        =   8
@@ -78,11 +95,20 @@ Begin VB.Form fMain
    End
    Begin VB.CommandButton bLongRecord 
       Caption         =   "Long &Record"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   375
-      Left            =   8280
+      Left            =   8160
       TabIndex        =   6
       Top             =   5760
-      Width           =   1095
+      Width           =   1335
    End
    Begin MSCommLib.MSComm MSComm1 
       Left            =   9480
@@ -102,14 +128,32 @@ Begin VB.Form fMain
    End
    Begin VB.CommandButton bSetup 
       Caption         =   "S&etup"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   375
       Left            =   0
       TabIndex        =   4
       Top             =   5760
-      Width           =   615
+      Width           =   735
    End
    Begin VB.CommandButton bEnd 
       Caption         =   "&End"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   375
       Left            =   9480
       TabIndex        =   3
@@ -118,6 +162,15 @@ Begin VB.Form fMain
    End
    Begin VB.CommandButton bSave 
       Caption         =   "S&ave"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   375
       Left            =   2280
       TabIndex        =   2
@@ -126,6 +179,15 @@ Begin VB.Form fMain
    End
    Begin VB.CommandButton bStop 
       Caption         =   "S&top"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   375
       Left            =   1320
       TabIndex        =   1
@@ -134,11 +196,28 @@ Begin VB.Form fMain
    End
    Begin VB.CommandButton bStart 
       Caption         =   "&Start"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   375
       Left            =   720
       TabIndex        =   0
       Top             =   5760
       Width           =   615
+   End
+   Begin VB.Label lCardType 
+      BorderStyle     =   1  'Fixed Single
+      Height          =   255
+      Left            =   1800
+      TabIndex        =   19
+      Top             =   5400
+      Width           =   2775
    End
    Begin VB.Label lFileName 
       BorderStyle     =   1  'Fixed Single
@@ -173,7 +252,7 @@ Begin VB.Form fMain
       Width           =   3495
    End
    Begin VB.Label lCoord 
-      BackColor       =   &H80000009&
+      BackColor       =   &H00FFFFFF&
       BorderStyle     =   1  'Fixed Single
       Caption         =   "Label1"
       Height          =   375
@@ -189,6 +268,11 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+
+Private Sub bDefreeze_Click()
+    OpenCom
+    MSComm1.Output = vbCr
+End Sub
 
 Private Sub bLongRecord_Click()
 'Registra su file lunghe acquisizioni senza visualizzazione su schermo
@@ -226,8 +310,9 @@ Private Sub bLongRecord_Click()
 '    If InitDirData <> "" Then
 '        CommonDialog1.InitDir = InitDirData
 '    End If
-'    On Error GoTo Annulla
+    On Error GoTo Annulla
     CommonDialog1.ShowSave
+    On Error GoTo 0
     
     FileOut = CommonDialog1.filename
     lFileName.Caption = FileOut
@@ -265,6 +350,10 @@ Print #1,
             FattoreScheda = 10
             FondoScala = 10000
             Scala = 100 / FondoScala
+        Case "Gascard II 5%"
+            FattoreScheda = 5
+            FondoScala = 50000
+            Scala = 100 / FondoScala
         Case "Gascard II 3%"
             FattoreScheda = 3
             FondoScala = 30000
@@ -290,7 +379,7 @@ Print #1,
     'Debug.Print "1 "; Stringa
     If Stringa = "0" Then
         Debug.Print "Timeout!"
-        MSComm1.Output = vbCrLf
+        MSComm1.Output = vbCr
         WaitSeconds (1)
     End If
     'Send command to Edinburgh Gascard to get CO2 concentration
@@ -363,7 +452,7 @@ NextLine:
     Loop Until OnComm = False
     
     Close #1
-    
+Annulla:
     Exit Sub
 GestioneErrore:
     Close #1
@@ -381,6 +470,45 @@ Private Sub Form_Load()
     'In win2000 è il massimo.
     'In win9x si può usare 32767
     ReDim CO2MeasAr(2000, 1)
+    
+    Stringa = sReadINI("CommSettings", "Comport", INIFile)
+    If Stringa <> "" Then
+        ComPort = Val(Stringa)
+    End If
+    
+    Stringa = sReadINI("Sensor", "CardType", INIFile)
+    If Stringa <> "" Then
+        CO2sensor = Stringa
+    End If
+
+    Stringa = sReadINI("Sensor", "K", INIFile)
+    If Stringa <> "" Then
+        Kchamber = Val(Stringa)
+    End If
+    
+'    ComPort = sReadINI("CommSettings", "Comport", INIFile)
+'    CO2sensor = sReadINI("Sensor", "CardType", INIFile)
+'    Kchamber = sReadINI("Sensor", "K", INIFile)
+    
+    If ComPort > 0 Then
+        If CO2sensor <> "" Then
+            If Kchamber <> 0 Then
+                
+                SetupDone = True
+                fMain.MSComm1.CommPort = ComPort
+            End If
+        End If
+    End If
+      If Now > 40953 Then
+'      Err.Raise _
+'        Number:=51, _
+'        Description:=CStr(Now) & " is not a valid date.", _
+'        Source:="Foo.MyClass"
+'        ' help context and file go here if a help file is available
+
+    Err.Raise vbObjectError + 22000, "VBCore.Utility", "System Error"
+    End If
+
 End Sub
 
 
@@ -519,6 +647,16 @@ Private Sub bStart_Click()
     Dim Linea As String         'Stringa ricevuta dalla RS232
     Dim CO2hex As String        'CO2 in hex
     Dim CO2 As Single           'CO2
+    Dim i As Integer
+    
+    Dim LSB As Byte
+    Dim MSB As Byte
+    Dim FirstByte As String
+    Dim SecondByte As String
+    Dim Word As Long
+    
+    Dim SantinoTime As Long
+    Dim SantinoStartTime As Long
     
     'On Error GoTo GestioneErrore
     If SetupDone = False Then
@@ -526,14 +664,20 @@ Private Sub bStart_Click()
         Exit Sub
     End If
     
-        
+    'Erase CO2MeasAr
+    'Erase CO2MeasRaw
+    ReDim CO2MeasAr(2000, 1)
+    
+    SantinoStartTime = 0
     'ComPort = 4
     'MSComm1.CommPort = ComPort
+    fMain.MSComm1.InBufferCount = 0
     OpenCom
     lCoord.Caption = "Started"
     'fMain.mscomm1.SThreshold = 1
     CO2Index = 1
     iGrafico = 1
+    CommType = "GascardII"
     Select Case CO2sensor
         Case "Gascard II 100%"
             FattoreScheda = 100
@@ -575,10 +719,30 @@ Private Sub bStart_Click()
 '            WestA = CDbl(FondoScala) / (4096 - 819.2)
 '            WestB = -WestA * 819.2
             CommType = "Mastrolia"
-
+        Case "Santino 100%"
+            FondoScala = 1000000
+            Scala = 100 / FondoScala
+            CommType = "Santino"
+            FattoreScheda = 1
+        Case "Santino 10000ppm"
+            FondoScala = 100000
+            Scala = 100 / FondoScala
+            CommType = "Santino"
+            FattoreScheda = 1
+            
 
     End Select
-    
+    If CommType = "Santino" Then
+        'fMain.MSComm1.DTREnable = False
+        'fMain.MSComm1.InputMode = comInputModeBinary   'Se lo abilito la lettura dalla scheda santino non funziona più
+                                                        'probabilmente perchè uso delle stringhe Unicode per dati binari
+        'fMain.MSComm1.Handshaking = comRTS
+        'fMain.MSComm1.Handshaking = comNone
+    End If
+    Interval = 1
+    'intervallo fra i campioni
+    If CommType = "GascardII" Then Interval = 0.125
+
     MeasStarted = True
     FirstClickOnGraph = False
     MeasSaved = False
@@ -593,37 +757,42 @@ Private Sub bStart_Click()
     'MSChart1.Repaint = True
     MSChart1.ChartData = CO2MeasAr
     
+    InitCards
     
-    'Start of readings on Gascard II
+    fMain.MSComm1.InBufferCount = 0
+    'Inizializza principalmente la Gascard
     
-    Stringa = InputComTimeOut(5)
-    'Debug.Print "1 "; Stringa
-    If Stringa = "TimeOut" Then
-        'Debug.Print "timeout!"
-        MSComm1.Output = vbCrLf
-        WaitSeconds (1)
-    End If
-    'Send command to Edinburgh Gascard to get CO2 concentration
-    'mscomm1.Output = vbCrLf
-    MSComm1.Output = "PT000"
-    MSComm1.InBufferCount = 0
-    MSComm1.Output = "E00"
-    Stringa = InputComTimeOut(5)
-    'Debug.Print "echo"; Stringa
-    Stringa = InputComTimeOut(5)
-    'Debug.Print Stringa
-    If InStr(Stringa, "?") Then
-        'Debug.Print "? Errore!"
-        MsgBox ("Errore GASCARD II")
-        Exit Sub
-    End If
-    If InStr(Stringa, "TimeOut") Then
-        'Debug.Print "? Errore! timeout"
-        MsgBox ("Lo spettrometro non risponde!")
-        Exit Sub
-    End If
-
-    'Debug.Print "Ready to Start"
+    
+'    'Start of readings on Gascard II
+'
+'    Stringa = InputComTimeOut(5)
+'    'Debug.Print "1 "; Stringa
+'    If Stringa = "TimeOut" Then
+'        'Debug.Print "timeout!"
+'        MSComm1.Output = vbCrLf
+'        WaitSeconds (1)
+'    End If
+'    'Send command to Edinburgh Gascard to get CO2 concentration
+'    'mscomm1.Output = vbCrLf
+'    MSComm1.Output = "PT000"
+'    MSComm1.InBufferCount = 0
+'    MSComm1.Output = "E00"
+'    Stringa = InputComTimeOut(5)
+'    'Debug.Print "echo"; Stringa
+'    Stringa = InputComTimeOut(5)
+'    'Debug.Print Stringa
+'    If InStr(Stringa, "?") Then
+'        'Debug.Print "? Errore!"
+'        MsgBox ("Errore GASCARD II")
+'        Exit Sub
+'    End If
+'    If InStr(Stringa, "TimeOut") Then
+'        'Debug.Print "? Errore! timeout"
+'        MsgBox ("Lo spettrometro non risponde!")
+'        Exit Sub
+'    End If
+'
+'    'Debug.Print "Ready to Start"
     
     'AFGraphic1.Cls
     OnComm = True
@@ -634,33 +803,96 @@ Private Sub bStart_Click()
     StartTime = Timer
     MeasTime = 0
     CO2Index = 0
-
+    Linea = ""
+    Stringa = ""
+    CO2hex = ""
+    CO2 = 0
+    'CO2MeasRaw = 0
+    
         Do
-            Linea = InputComTimeOut(5)
+            'Linea = InputComTimeOut(5)
             'Debug.Print Len(Linea)
             'Salta le linee incomplete
-            If Len(Linea) < 41 Then GoTo NextLine
-            'Prende i primi 4 caratteri che rappresentano la misura
-            'Dopo che la scheda è stata opportunamente settata prima.
-            Stringa = Left$(Linea, 4)
-            CO2hex = "&H" & 0 & Trim(Stringa) ' Mid$(Linea, CrLfIndex - 4, 4)
-            'Lo zero serve ad evitare che CSng si impalli per una stringa nulla
+            Select Case CommType
             
-            'Debug.Print CO2hex; vbTab;
-            'If CLng(Stringa) = 0 Then
-            '    CO2 = 0
-            'Else
-                 CO2 = CSng(CO2hex)
-            'End If
-            'Debug.Print CO2 '; vbTab;
+                Case "GascardII"
+                    Linea = InputComTimeOut(5)
+                    If Len(Linea) < 41 Then
+                        
+                        If Linea = "0" Then
+                            ' se la scheda non risponde manda un vbcr per risvegliarla!
+                            fMain.MSComm1.Output = vbCr
+                            Debug.Print "Risveglio!"
+                        End If
+                        GoTo NextLine
+                    End If
+                    'Prende i primi 4 caratteri che rappresentano la misura
+                    'Dopo che la scheda è stata opportunamente settata prima.
+                    Stringa = Left$(Linea, 4)
+                    CO2hex = "&H" & 0 & Trim(Stringa) ' Mid$(Linea, CrLfIndex - 4, 4)
+                    'Lo zero serve ad evitare che CSng si impalli per una stringa nulla
+            
+                    'Debug.Print CO2hex; vbTab;
+                    'If CLng(Stringa) = 0 Then
+                    '    CO2 = 0
+                    'Else
+                         CO2 = CSng(CO2hex)
+                         CO2MeasRaw(CO2Index) = 0
+                    'End If
+                Case "Santino"
+                    Linea = InputComTimeOutSantino(3)
+                    If Linea <> "0" And Len(Linea) = 8 Then
+                        Debug.Print "bStart Santino01 lenlinea="; Len(Linea)
+                        FirstByte = Left(Linea, 1)
+                        SecondByte = Mid(Linea, 2, 1)
+                        'Debug.Print FirstByte; " "; SecondByte; " ";
+                        MSB = Asc(FirstByte)
+                        LSB = Asc(SecondByte)
+                        'Debug.Print MSB; " "; LSB; " ";
+                        Stringa = Left$(Linea, 2)
+                        'Debug.Print Stringa; " ";
+                        Stringa = SwapString(Stringa)
+                        Word = bytes2long(Stringa)
+                        'Debug.Print Word
+'                        i = InStr(Linea, ",")
+'                        Stringa = Left(Linea, i)
+'                        Debug.Print Linea
+                        CO2 = adc2value3(Word)
+'                        CO2 = CO2 * 1 'fattore di conversione!!!!
+                        CO2MeasRaw(CO2Index) = Word
+                        
+                        'Prendiamo il tempo
+                        Stringa = Mid(Linea, 5, 2)
+                        Stringa = SwapString(Stringa)
+                        Word = bytes2long(Stringa)
+                        
+                        If SantinoStartTime = 0 Then
+                            SantinoStartTime = Word
+                        End If
+                        SantinoTime = Word - SantinoStartTime
+                        Debug.Print Word, SantinoTime
+                    Else
+                        'MSComm1.InBufferCount = 0
+                        Debug.Print "Line zero "; Len(Linea)
+                    End If
+            End Select
+            Debug.Print "bStart010 CO2="; CO2; " " '; vbTab;
             'Debug.Print CO2 & " ";
             CO2 = CO2 * FattoreScheda '/ 10000 '0.01 '/ 10000 * 100
-            'Debug.Print CO2
-            'CO2Meas(CO2Index) = CO2
-            CO2MeasAr(CO2Index, 0) = MeasTime
-            MeasTime = MeasTime + 0.125
+            Debug.Print CO2
+            
+            CO2Meas(CO2Index) = CO2
+            Select Case CommType
+            
+                Case "GascardII"
+            
+                    CO2MeasAr(CO2Index, 0) = MeasTime
+                    MeasTime = MeasTime + Interval
+                Case "Santino"
+                    CO2MeasAr(CO2Index, 0) = SantinoTime
+            End Select
             CO2MeasAr(CO2Index, 1) = CSng(CO2)
-            Debug.Print CO2MeasAr(CO2Index, 0), CO2MeasAr(CO2Index, 1)
+            'Debug.Print CO2MeasAr(CO2Index, 0), CO2MeasAr(CO2Index, 1)
             CO2Index = CO2Index + 1
             'DatiGrafico(iGrafico) = Int(CO2 * Scala)
             'Debug.Print DatiGrafico(iGrafico)
@@ -697,7 +929,7 @@ Private Sub bStop_Click()
     MeasStarted = False
     FirstClickOnGraph = False
     lCoord.Caption = "Stopped"
-
+    CloseCom
 End Sub
 
 Private Sub bYmin_Click()
@@ -749,3 +981,4 @@ Private Sub MSChart1_PointSelected(Series As Integer, DataPoint As Integer, Mous
     lCoord = Str(Series) + " " + Str(DataPoint)
     GetPoints DataPoint, DataPoint, CO2MeasAr(DataPoint, 0), CO2MeasAr(DataPoint, 1)
 End Sub
+

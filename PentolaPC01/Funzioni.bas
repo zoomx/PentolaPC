@@ -24,6 +24,10 @@ Public Function InputComTimeOut(TimeOut As Integer) As String
             TimeStop = Timer + TimeOut ' Imposta l'ora di fine
             Do Until Dummy = vbLf Or (Timer > TimeStop)
                 DoEvents
+                If OnComm = False Then
+                    InputComTimeOut = ""
+                    Exit Function
+                End If
                 Dummy = fMain.MSComm1.Input
                 Linea = Linea + Dummy
             Loop
@@ -33,6 +37,195 @@ Public Function InputComTimeOut(TimeOut As Integer) As String
         InputComTimeOut = Linea
 
 End Function
+
+Public Function InputComTimeOutSantino(TimeOut As Integer) As String
+'Attende un input il cui terminatore e' FF FF per il datalogger di Santino
+'Con TIMEOUT
+    Dim TimeStop As Long
+    Dim Linea As String
+    Dim Dummy As String
+        
+        
+        Debug.Print "InputComTimeOutSantino"
+'        Debug.Print "COM"; fMain.MSComm1.CommPort
+'        Debug.Print "Count "; fMain.MSComm1.InBufferCount
+'        Debug.Print "Port open "; fMain.MSComm1.PortOpen
+'        Debug.Print fMain.MSComm1.InputMode
+        Debug.Print fMain.MSComm1.Handshaking
+        'set ishell=
+        'TimeOut = TimeOut * 1000 'passiamo ai millisecondi
+        
+        Linea = ""
+        Dummy = ""
+        
+        
+        TimeStop = Timer + TimeOut
+        'Debug.Print iShelll.GetTimeMS
+        'Debug.Print "InputComTimeOutSantino times"; Timer; " "; TimeStop
+        fMain.MSComm1.InputLen = 1
+        
+        Do
+            DoEvents
+            'aspetta che arrivi il primo carattere
+        Loop Until (fMain.MSComm1.InBufferCount >= 1) Or (Timer > TimeStop)
+        
+        If fMain.MSComm1.InBufferCount >= 1 Then 'Se è arrivato allora..
+            Linea = ""
+            Dummy = ""
+            TimeStop = Timer + TimeOut  ' Imposta l'ora di fine per evitare
+                                        ' di aspettare all'infinito nel mezzo della
+                                        ' trasmissione
+                                        
+'            Dummy = fMain.MSComm1.Input
+'            If Dummy <> Chr$(255) Then
+'                Stringa = Char2ascii(Dummy)
+'                Linea = Dummy
+'
+'            End If
+'            Dummy = ""
+            Do Until Dummy = Chr$(255) Or (Timer > TimeStop)
+                'Attendo la ricezione fino a FF
+                DoEvents
+                fMain.MSComm1.InputLen = 1
+                Dummy = fMain.MSComm1.Input
+                If Dummy <> "" Then
+                    Stringa = Char2ascii(Dummy)
+                    'Debug.Print Stringa; " ";
+                    Linea = Linea + Dummy
+                    'Debug.Print Len(Linea);
+                End If
+            Loop
+            'Debug.Print
+'            Debug.Print "7-"; Len(Linea);
+'            Stringa = Char2ascii(Linea)
+'            Debug.Print "InputComTimeOutSantino02"; Stringa
+
+            
+            'If Timer < TimeStop Then
+                'prendo l'altro FF
+                
+'            Do
+'                DoEvents
+'                'aspetta che arrivi il primo carattere
+'            Loop Until (fMain.MSComm1.InBufferCount >= 1) Or (Timer > TimeStop)
+            fMain.MSComm1.InputLen = 1
+ultimo:
+            Dummy = fMain.MSComm1.Input
+            If Dummy = "" Then GoTo ultimo
+            If Dummy = Chr$(255) Then
+                Linea = Linea + Dummy
+                Debug.Print "InputComTimeOutSantino ottavo"
+            End If
+            'End If
+            'Debug.Print Len(Linea)
+            'Stringa = Char2ascii(Linea)
+            ' Debug.Print "InputComTimeOutSantino03"; Stringa
+             
+        Else
+            Linea = "0"
+        End If
+        'Debug.Print "Taken"
+        InputComTimeOutSantino = Linea
+
+End Function
+Public Function InputComTimeOutTerm(TimeOut As Integer, Terminator As Byte) As String
+'Attende un input il cui terminatore e' Terminator
+'Con TIMEOUT
+
+        Dim TimeStop As Long
+        Dim Linea As String
+        Dim Dummy As String
+
+        TimeStop = Timer + TimeOut
+        fMain.MSComm1.InputLen = 1
+        Do
+            DoEvents
+        Loop Until (fMain.MSComm1.InBufferCount >= 1) Or (Timer > TimeStop)
+        If fMain.MSComm1.InBufferCount >= 1 Then
+            Linea = ""
+            Dummy = ""
+            TimeStop = Timer + TimeOut ' Imposta l'ora di fine
+            Do Until Dummy = Chr(Terminator) Or (Timer > TimeStop)
+                DoEvents
+                Dummy = fMain.MSComm1.Input
+                Linea = Linea + Dummy
+            Loop
+        Else
+            Linea = "TimeOut"
+        End If
+        InputComTimeOutTerm = Linea
+
+End Function
+Public Function adc2value(Valore_ADC As Long, Bitmin As Long, _
+Bitmax As Long, valMax As Double, valMin As Double, valOff _
+As Double) As Double
+'From ADCount to Value
+
+    Dim Valore As Double
+    Valore = (Valore_ADC - Bitmin) / (Bitmax - Bitmin) * _
+    (valMax - valMin) + valMin + valOff
+    adc2value = Valore
+    Debug.Print "adc2value-->"; Valore
+End Function
+
+Public Function adc2value2(Valore_ADC As Double, Bitmin As Double, _
+Bitmax As Double, valMax As Double, valMin As Double, valOff _
+As Double) As Double
+'From ADCount to Value
+
+    Dim Valore As Double
+    Valore = (Valore_ADC - Bitmin) / (Bitmax - Bitmin) * _
+    (valMax - valMin) + valMin + valOff
+    'Float = (Float - V2) * (T1 - T2) / (V1 - V2) + T2
+    'T1 = 15.7  'valmax
+    'T2 = 52.7  'valmin
+    'V1 = 2.546 'bitmax
+    'V2 = 0.99  'bitmin
+
+    '811    bitmin
+    '2086   bitmax
+    '52.7   valmin
+    '15.7   valmax
+    '52.7   valoff
+    
+    adc2value2 = Valore
+    Debug.Print "adc2value2-->"; Valore
+End Function
+Public Function adc2value3(Valore_ADC As Long) As Double
+'From ADCount to Value
+'Per lo spettrometro di serena
+
+    Dim Valore As Double
+    Valore = Valore_ADC * 0.3288 - 2791.1
+    adc2value3 = Valore
+    'Debug.Print "adc2value-->"; Valore
+End Function
+
+
+
+Function SwapBytes(num As Integer) As Integer
+' Take an input integer, assumed to be in "left to right" byte order, and convert it to "standard" Intel format by swapping the two bytes.
+
+Dim TextVal As String
+Dim NewTextVal As String
+Dim StringLength As Integer
+
+TextVal = Hex$(num)
+StringLength = Len(TextVal)
+NewTextVal = ""
+Select Case StringLength
+    Case 1
+       NewTextVal = "&H" & "0" & TextVal & "00"
+    Case 2
+       NewTextVal = "&H" & TextVal & "00"
+    Case 3
+       NewTextVal = "&H" & Right$(TextVal, 2) & "0" & Left$(TextVal, 1)
+    Case 4
+       NewTextVal = "&H" & Right$(TextVal, 2) & Left$(TextVal, 2)
+End Select
+SwapBytes = Val(NewTextVal)
+End Function
+
 
 Public Sub OpenCom()
     'Apre la porta com
@@ -389,16 +582,69 @@ Public Sub NewPath(Stringa As String)
     ChDrive (Left(Stringa, 3))
     ChDir (Stringa)
 End Sub
-Public Function adc2value(Valore_ADC As Long, Bitmin As Long, _
-Bitmax As Long, valMax As Double, valMin As Double, valOff _
-As Double) As Double
-'From ADCount to Value
 
-    Dim Valore As Double
-    Valore = (Valore_ADC - Bitmin) / (Bitmax - Bitmin) * _
-    (valMax - valMin) + valMin + valOff
-    adc2value = Valore
-    'Debug.Print "adc2value-->"; Valore
+Public Function SwapString(Stringa As String) As String
+    Dim lStringa As Long
+    Dim Dummy As String
+    Dim i As Long
+    lStringa = Len(Stringa)
+    'Capovolge la stringa
+    Dummy = ""
+    For i = lStringa To 1 Step -1
+        Dummy = Dummy + Mid(Stringa, i, 1)
+    Next
+    SwapString = Dummy
 End Function
 
+Public Function bytes2long(Stringa As String) As Long
+'converte una stringa rappresentante un numero long in binario
+'(littel endian, basso-alto) nel numero stesso
+    Dim lStringa As Integer
+    Dim i As Integer
+    Dim j As Integer
+    Dim Lungo As Long
+    Dim a As String
+    On Error GoTo GestErr
+    'StampaAscii (Stringa)
+    lStringa = Len(Stringa)
+    If lStringa > 4 Then
+        Stringa = Left(Stringa, 4)
+        lStringa = Len(Stringa)
+    End If
+    Lungo = 0
+    'For i = lstringa To 1 Step -1
+    For i = 1 To lStringa
+        a = Mid(Stringa, i, 1)
+        j = Asc(a)
+        Lungo = Lungo + j * 256 ^ (i - 1)
+        
+    Next
+    bytes2long = Lungo
+    Exit Function
+GestErr:
+    If Err.Number = 6 Then
+        bytes2long = 2147483647
+    End If
+    
+End Function
+
+Public Function Char2ascii(Stringa As String) As String
+'Trasforma una stringa contenente caratteri ASCII e non
+'ASCII in stringa di codici di caratteri ASCII
+'Viene gestito anche il chr$(0)
+    Dim lStringa As Integer
+    Dim tStringa As String
+    Dim i As Integer
+    
+    lStringa = Len(Stringa)
+    tStringa = ""
+    For i = 1 To lStringa
+        If Mid(Stringa, i, 1) = Chr$(0) Then
+            tStringa = tStringa + " " + "00"
+        Else
+            tStringa = tStringa + Str(Asc(Mid(Stringa, i, 1)))
+        End If
+    Next
+    Char2ascii = tStringa
+End Function
 
