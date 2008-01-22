@@ -1,6 +1,6 @@
 Type=Exe
 Form=fMain.frm
-Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#C:\winnt\system32\stdole2.tlb#OLE Automation
+Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#C:\WINNT\system32\STDOLE2.TLB#OLE Automation
 Object={65E121D4-0C60-11D2-A9FC-0000F8754DA1}#2.0#0; MSCHRT20.OCX
 Module=Funzioni; Funzioni.bas
 Module=Modifiche; Modifiche.bas

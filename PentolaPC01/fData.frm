@@ -14,7 +14,7 @@ Begin VB.Form fData
       Height          =   285
       Left            =   2160
       TabIndex        =   16
-      Text            =   "4"
+      Text            =   "1"
       Top             =   2280
       Width           =   1455
    End
@@ -22,7 +22,7 @@ Begin VB.Form fData
       Height          =   285
       Left            =   2160
       TabIndex        =   13
-      Text            =   "1"
+      Text            =   "14"
       Top             =   1920
       Width           =   1455
    End
@@ -178,9 +178,12 @@ End Sub
 
 Private Sub Form_Load()
     ComboSensors.AddItem "Gascard II 100%"
+    ComboSensors.AddItem "Gascard II 30%"
     ComboSensors.AddItem "Gascard II 10%"
+    ComboSensors.AddItem "Gascard II 5%"
     ComboSensors.AddItem "Gascard II 3%"
     ComboSensors.AddItem "Gascard II 1%"
+    ComboSensors.AddItem "Gascard II 3000 ppm"
     ComboSensors.AddItem "Licor 820"
 
 End Sub

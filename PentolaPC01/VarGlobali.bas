@@ -57,6 +57,8 @@ Public MeasSaved As Boolean
 Public MeasStarted As Boolean
 Public FirstClickOnGraph As Boolean
 Public GettingPoint As String
+Public LongMeasure As Boolean   'For measures that take one hour
+Public Dummy As String
 
 Public x1 As Integer
 Public x2 As Integer

@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{65E121D4-0C60-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCHRT20.OCX"
 Object = "{648A5603-2C6E-101B-82B6-000000000014}#1.1#0"; "MSCOMM32.OCX"
-Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "comdlg32.ocx"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "COMDLG32.OCX"
 Begin VB.Form fMain 
    Caption         =   "PentolaPC"
    ClientHeight    =   6300
@@ -70,23 +70,23 @@ Begin VB.Form fMain
       Width           =   735
    End
    Begin MSComDlg.CommonDialog CommonDialog1 
-      Left            =   8520
-      Top             =   4920
+      Left            =   9600
+      Top             =   4440
       _ExtentX        =   847
       _ExtentY        =   847
       _Version        =   393216
    End
-   Begin VB.CommandButton bDownload 
-      Caption         =   "&Download"
+   Begin VB.CommandButton bLongRecord 
+      Caption         =   "Long &Record"
       Height          =   375
-      Left            =   8400
+      Left            =   8280
       TabIndex        =   6
       Top             =   5760
-      Width           =   975
+      Width           =   1095
    End
    Begin MSCommLib.MSComm MSComm1 
-      Left            =   7920
-      Top             =   4800
+      Left            =   9480
+      Top             =   3840
       _ExtentX        =   1005
       _ExtentY        =   1005
       _Version        =   393216
@@ -140,6 +140,24 @@ Begin VB.Form fMain
       Top             =   5760
       Width           =   615
    End
+   Begin VB.Label lFileName 
+      BorderStyle     =   1  'Fixed Single
+      Caption         =   "File Name"
+      Height          =   255
+      Left            =   4080
+      TabIndex        =   18
+      Top             =   6000
+      Width           =   2775
+   End
+   Begin VB.Label lPointName 
+      BorderStyle     =   1  'Fixed Single
+      Caption         =   "Point"
+      Height          =   255
+      Left            =   4080
+      TabIndex        =   17
+      Top             =   5760
+      Width           =   2775
+   End
    Begin VB.Label lGascard 
       Height          =   255
       Left            =   3960
@@ -159,10 +177,10 @@ Begin VB.Form fMain
       BorderStyle     =   1  'Fixed Single
       Caption         =   "Label1"
       Height          =   375
-      Left            =   6480
+      Left            =   7080
       TabIndex        =   7
       Top             =   5760
-      Width           =   1695
+      Width           =   1095
    End
 End
 Attribute VB_Name = "fMain"
@@ -171,6 +189,186 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+
+Private Sub bLongRecord_Click()
+'Registra su file lunghe acquisizioni senza visualizzazione su schermo
+
+    Dim Linea As String         'Stringa ricevuta dalla RS232
+    Dim CO2hex As String        'CO2 in hex
+    Dim CO2 As Single           'CO2
+    
+    'On Error GoTo GestioneErrore
+    If SetupDone = False Then
+        MsgBox ("Press Setup first!")
+        Exit Sub
+    End If
+
+'Scelta del file dove salvare
+    'impostazioni iniziali di CommonDialog1
+    NewPath sGetAppPath
+    CommonDialog1.CancelError = True
+    'Controlla se si vuole sostituire il file,
+    'che la directory eventualmente immessa esista,
+    'non prende in considerazione files e directory a sola lettura
+    'non mostra la casella sola lettura
+    CommonDialog1.Flags = cdlOFNOverwritePrompt + cdlOFNPathMustExist + cdlOFNNoReadOnlyReturn + cdlOFNHideReadOnly
+    'Filtri di dialogo
+    CommonDialog1.Filter = "File Ascii (*.dat)|*.dat|File Sima (*.sim)|*.sim|Tutti i file (*.*)|*.*"
+    Dummy = sGetAppPath()
+    Dummy = Dummy + Format(Year(Now), "0000")
+    Dummy = Dummy + Format(Month(Now), "00")
+    Dummy = Dummy + Format(Day(Now), "00")
+    Dummy = Dummy + Format(Hour(Now), "00")
+    Dummy = Dummy + Format(Minute(Now), "00")
+    Dummy = Dummy + Format(Second(Now), "00")
+    Dummy = Dummy + ".dat"
+    fMain.CommonDialog1.filename = Dummy
+'    If InitDirData <> "" Then
+'        CommonDialog1.InitDir = InitDirData
+'    End If
+'    On Error GoTo Annulla
+    CommonDialog1.ShowSave
+    
+    FileOut = CommonDialog1.filename
+    lFileName.Caption = FileOut
+
+'Apertura file
+Open FileOut For Output As #1
+Stringa = InputBox("Card Serial Number")
+Print #1, "Pentola PC02 measurement file"
+Print #1, "Spectrometer ->";
+Print #1, CO2sensor
+Print #1, "s/n "; Stringa
+Print #1, "Measurement started on ";
+Print #1, Date; " "; Time
+Print #1,
+
+
+
+    'ComPort = 4
+    'MSComm1.CommPort = ComPort
+    OpenCom
+    lCoord.Caption = "Started"
+    'fMain.mscomm1.SThreshold = 1
+    CO2Index = 1
+    iGrafico = 1
+    Select Case CO2sensor
+        Case "Gascard II 100%"
+            FattoreScheda = 100
+            FondoScala = 100000
+            Scala = 100 / FondoScala
+        Case "Gascard II 30%"
+            FattoreScheda = 30
+            FondoScala = 30000
+            Scala = 100 / FondoScala
+        Case "Gascard II 10%"
+            FattoreScheda = 10
+            FondoScala = 10000
+            Scala = 100 / FondoScala
+        Case "Gascard II 3%"
+            FattoreScheda = 3
+            FondoScala = 30000
+            Scala = 100 / FondoScala
+        Case "Gascard II 1%"
+            FattoreScheda = 1
+            FondoScala = 10000
+            Scala = 100 / FondoScala
+        Case "Gascard II 3000 ppm"
+            FattoreScheda = 0.3
+            FondoScala = 3000
+            Scala = 100 / FondoScala
+    End Select
+    
+    'Scala = 0.01 '2000 / 100
+    'AFTimer1.Interval = 1
+    MeasStarted = True
+
+    Stringa = InputComTimeOut(5)
+    'Debug.Print "1 "; Stringa
+    If Stringa = "0" Then
+        Debug.Print "Timeout!"
+        MSComm1.Output = vbCrLf
+        WaitSeconds (1)
+    End If
+    'Send command to Edinburgh Gascard to get CO2 concentration
+    'mscomm1.Output = vbCrLf
+    MSComm1.Output = "PT000"
+    MSComm1.InBufferCount = 0
+    MSComm1.Output = "E00"
+    Stringa = InputComTimeOut(5)
+    'Debug.Print "echo"; Stringa
+    Stringa = InputComTimeOut(5)
+    'Debug.Print Stringa
+    If InStr(Stringa, "?") Then
+        'Debug.Print "? Errore!"
+        MsgBox ("Errore GASCARD II")
+        Exit Sub
+    End If
+    If Stringa = "0" Then
+        'Debug.Print "? Errore! timeout"
+        MsgBox ("Lo spettrometro non risponde!")
+        Close #1
+        Exit Sub
+    End If
+
+    'Debug.Print "Ready to Start"
+
+    'AFGraphic1.Cls
+    OnComm = True
+    'fMain.mscomm1.RThreshold = 1
+    
+    'alternativa
+    'ciclo
+    StartTime = Timer
+    MeasTime = 0
+    CO2Index = 0
+    Do
+        Linea = InputComTimeOut(5)
+        'Debug.Print Len(Linea)
+        'Salta le linee incomplete
+        If Len(Linea) < 41 Then GoTo NextLine
+        'Prende i primi 4 caratteri che rappresentano la misura
+        'Dopo che la scheda è stata opportunamente settata prima.
+        Stringa = Left$(Linea, 4)
+        CO2hex = "&H" & 0 & Trim(Stringa) ' Mid$(Linea, CrLfIndex - 4, 4)
+        'Lo zero serve ad evitare che CSng si impalli per una stringa nulla
+        
+        'Debug.Print CO2hex; vbTab;
+        'If CLng(Stringa) = 0 Then
+        '    CO2 = 0
+        'Else
+        CO2 = CSng(CO2hex)
+        'End If
+        'Debug.Print CO2 '; vbTab;
+        'Debug.Print CO2 & " ";
+        CO2 = CO2 * FattoreScheda '/ 10000 '0.01 '/ 10000 * 100
+        'Debug.Print CO2
+        'CO2Meas(CO2Index) = CO2
+        CO2MeasAr(CO2Index, 0) = MeasTime
+
+'Da modificare a seconda della scheda !!!!!
+        MeasTime = MeasTime + 0.125
+
+        CO2MeasAr(CO2Index, 1) = CSng(CO2)
+        Debug.Print CO2MeasAr(CO2Index, 0), CO2MeasAr(CO2Index, 1)
+        'CO2Index = CO2Index + 1
+        DoEvents
+        'Stampa i risultati sul file
+        Print #1, Str(CO2MeasAr(CO2Index, 0)) + ";" + Str(CO2MeasAr(CO2Index, 1))
+        lPointName.Caption = Str(CO2MeasAr(CO2Index, 0)) + ";" + Str(CO2MeasAr(CO2Index, 1))
+NextLine:
+    Loop Until OnComm = False
+    
+    Close #1
+    
+    Exit Sub
+GestioneErrore:
+    Close #1
+    'Stringa = Err.Description + " in bStart_Click at" + Str(CO2Index) + " with " + Str(CO2) + "," + CO2hex + "," + Str(100 - DatiGrafico(iGrafico - 1))
+    Stringa = Err.Description + " in bStart_Click at" + Str(CO2Index) + " with " + Str(CO2) + ",<" + CO2hex + ">," + Stringa + vbCrLf + Linea
+    MsgBox Stringa
+
+End Sub
 
 Private Sub Form_Load()
     INIFile = App.Path + "\" + App.EXEName + ".ini"
@@ -182,10 +380,6 @@ Private Sub Form_Load()
     ReDim CO2MeasAr(2000, 1)
 End Sub
 
-Private Sub bDownload_Click()
-'    Me.Hide
-'    Form1.Show
-End Sub
 
 Private Sub bEnd_Click()
     End
@@ -243,8 +437,20 @@ Private Sub bLoad_Click()
     Dim Linea As String
     Dim Samples As Long
     Dim i As Integer
+    Dim index As Integer
+    Dim Second As String
+    Dim COdue As String
     CommonDialog1.ShowOpen
     Open CommonDialog1.filename For Input As #1
+    On Error GoTo fine
+    Do
+        
+        Input #1, Linea
+        Stringa = Left(Linea, 8)
+    Loop Until Stringa = "Location"
+    Location = Mid(Linea, 9, Len(Linea) - 8)
+    lPointName.Caption = "Point:" + Location
+    lFileName.Caption = GetNameFromDir(CommonDialog1.filename)
     Do
         Input #1, Linea
         Stringa = Left(Linea, 7)
@@ -253,17 +459,24 @@ Private Sub bLoad_Click()
     Samples = Val(Stringa)
     ReDim CO2MeasAr(Samples - 1, 1)
     Input #1, Linea
-    On Error GoTo continua
+    'On Error GoTo continua
     For i = 0 To Samples - 1 'UBound(CO2MeasAr)
-
-        Input #1, CO2MeasAr(i, 0)
-        'Print #1, ",";
-
-        Input #1, CO2MeasAr(i, 1)
+        Line Input #1, Linea
+        index = InStr(Linea, ";")
+        Second = Mid(Linea, 1, index - 1)
+        COdue = Mid(Linea, index + 1, Len(Linea))
+        CO2MeasAr(i, 0) = Val(Second)
+        CO2MeasAr(i, 1) = Val(COdue)
+        DoEvents
+'        Input #1, CO2MeasAr(i, 0)
+'        'Print #1, ",";
+'        Input #1, CO2MeasAr(i, 1)
+        If CO2MeasAr(i, 1) < 0 Then CO2MeasAr(i, 1) = 0
 
 
     Next
     On Error GoTo 0
+fine:
     Close 1
     MSChart1.chartType = VtChChartType2dXY
     MSChart1.Plot.UniformAxis = False
@@ -313,9 +526,17 @@ Private Sub bStart_Click()
             FattoreScheda = 100
             FondoScala = 100000
             Scala = 100 / FondoScala
+        Case "Gascard II 30%"
+            FattoreScheda = 30
+            FondoScala = 30000
+            Scala = 100 / FondoScala
         Case "Gascard II 10%"
             FattoreScheda = 10
             FondoScala = 10000
+            Scala = 100 / FondoScala
+        Case "Gascard II 5%"
+            FattoreScheda = 5
+            FondoScala = 50000
             Scala = 100 / FondoScala
         Case "Gascard II 3%"
             FattoreScheda = 3
@@ -324,6 +545,10 @@ Private Sub bStart_Click()
         Case "Gascard II 1%"
             FattoreScheda = 1
             FondoScala = 10000
+            Scala = 100 / FondoScala
+        Case "Gascard II 3000 ppm"
+            FattoreScheda = 0.3
+            FondoScala = 3000
             Scala = 100 / FondoScala
     End Select
     
@@ -421,7 +646,7 @@ Private Sub bStart_Click()
         lCoord.Caption = CO2
         MSChart1.ChartData = CO2MeasAr
         DoEvents
-        'CheckGraph
+        'CheckGraph     'Questa routine dovrebbe visualizzare gli ultimi dati
 NextLine:
     Loop Until OnComm = False
     

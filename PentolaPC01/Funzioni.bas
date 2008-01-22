@@ -261,6 +261,11 @@ Public Sub GetPoints(x As Integer, y As Integer, Time As Single, value As Single
         SommaY2 = 0
         SommaXY = 0
         n = x2 - x1
+        If n = 0 Then
+            GettingPoint = "first"
+            fMain.Label1.Caption = "Select first point"
+            Exit Sub
+        End If
         For i = x1 To x2
             SommaX = SommaX + CO2MeasAr(i, 0)
             SommaX2 = SommaX2 + CO2MeasAr(i, 0) * CO2MeasAr(i, 0)
@@ -316,6 +321,12 @@ Public Sub GetPoints(x As Integer, y As Integer, Time As Single, value As Single
 '        Next i
 '
     NP = CSng(x2 - x1) + 1
+    If (NP * SommaX2 - SommaX * SommaX) = 0 Then
+            GettingPoint = "first"
+            fMain.Label1.Caption = "Select first point"
+            Exit Sub
+
+    End If
     a3 = (NP * SommaXY - SommaX * SommaY) / (NP * SommaX2 - SommaX * SommaX)
     b3 = (SommaX2 * SommaY - SommaX * SommaXY) / (NP * SommaX2 - SommaX * SommaX)
     r3 = (NP * SommaXY - SommaX * SommaY) / Sqr((NP * SommaX2 - SommaX * SommaX) * (NP * SommaY2 - SommaY * SommaY))
@@ -326,12 +337,14 @@ Public Sub GetPoints(x As Integer, y As Integer, Time As Single, value As Single
 '        Stringa = "m con punti" + Str(m) + vbCrLf
 '        Stringa = Stringa + "m con valori=" + Str(m2) + vbCrLf
         Stringa = "m con valori estremi=" + Str(m2) + vbCrLf
-        Stringa = Stringa + "metodo WEST" + vbCrLf
-        Stringa = Stringa + "a=" + Str(a) + vbCrLf
-        Stringa = Stringa + "R2=" + Str(r2) + vbCrLf
+        Stringa = Stringa + "CO2=" + Str(m2 * 14) + vbCrLf
+'        Stringa = Stringa + "metodo WEST" + vbCrLf
+'        Stringa = Stringa + "a=" + Str(a) + vbCrLf
+'        Stringa = Stringa + "R2=" + Str(r2) + vbCrLf
         Stringa = Stringa + "Metodo definitivo" + vbCrLf
         Stringa = Stringa + "a=" + Str(a3) + vbCrLf
         Stringa = Stringa + "R2=" + Str(r3) + vbCrLf
+        Stringa = Stringa + "CO2=" + Str(a3 * 14)
         MsgBox Stringa
         GettingPoint = "first"
         fMain.Label1.Caption = ""
@@ -346,3 +359,35 @@ Public Sub WaitSeconds(Seconds As Long)
         DoEvents
     Loop Until Timer - Stime > Seconds
 End Sub
+
+Public Function GetNameFromDir(Dir As String) As String
+    Dim i As Long
+    Dim lasti As Long
+    Dim Dirr As String
+    Dirr = Dir
+    Do
+        lasti = i
+        i = InStr(Dir, "\")
+        Dir = Right(Dir, Len(Dir) - i)
+    Loop Until i = 0
+    GetNameFromDir = Dir
+End Function
+
+Function sGetAppPath() As String
+'*Returns the application path with a trailing \.      *
+'*To use, call the function [SomeString=sGetAppPath()] *
+Dim sTemp As String
+        sTemp = App.Path
+        If Right$(sTemp, 1) <> "\" Then sTemp = sTemp + "\"
+        sGetAppPath = sTemp
+End Function
+
+Public Sub NewPath(Stringa As String)
+'Cambia drive e path contemporaneamente
+'Modificare per i drive di rete
+'Es. NewPath "d:\temp"
+    ChDrive (Left(Stringa, 3))
+    ChDir (Stringa)
+End Sub
+
+
