@@ -185,5 +185,8 @@ Private Sub Form_Load()
     ComboSensors.AddItem "Gascard II 1%"
     ComboSensors.AddItem "Gascard II 3000 ppm"
     ComboSensors.AddItem "Licor 820"
+    ComboSensors.AddItem "Mastrolia 10000"
+    ComboSensors.AddItem "Mastrolia 100%"
+    ComboSensors.AddItem "Santino"
 
 End Sub

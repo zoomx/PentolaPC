@@ -65,3 +65,4 @@ Public x2 As Integer
 Public y1 As Integer
 Public y2 As Integer
 
+Public CommType As String

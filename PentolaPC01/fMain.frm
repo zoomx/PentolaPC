@@ -1,7 +1,7 @@
 VERSION 5.00
 Object = "{65E121D4-0C60-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCHRT20.OCX"
-Object = "{648A5603-2C6E-101B-82B6-000000000014}#1.1#0"; "MSCOMM32.OCX"
-Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "COMDLG32.OCX"
+Object = "{648A5603-2C6E-101B-82B6-000000000014}#1.1#0"; "mscomm32.ocx"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "comdlg32.ocx"
 Begin VB.Form fMain 
    Caption         =   "PentolaPC"
    ClientHeight    =   6300
@@ -283,6 +283,9 @@ Print #1,
     'AFTimer1.Interval = 1
     MeasStarted = True
 
+
+    'Start of Gascard II communications
+
     Stringa = InputComTimeOut(5)
     'Debug.Print "1 "; Stringa
     If Stringa = "0" Then
@@ -389,8 +392,6 @@ Private Sub bSave_Click()
     Dim i As Integer
 
     If MeasDone = False Then Exit Sub
-    CommonDialog1.ShowSave
-    Open CommonDialog1.filename For Output As #1
     
     NomeFile = Trim(Str(Year(Now)))
     Stringa = Trim(Str(Month(Now)))
@@ -407,9 +408,14 @@ Private Sub bSave_Click()
     NomeFile = NomeFile + Stringa
     Stringa = Trim(Str(Second(Now)))
     If Len(Stringa) = 1 Then Stringa = "0" + Stringa
+    
+
+    CommonDialog1.filename = NomeFile + ".dat"
+    
     NomeFile = NomeFile + Stringa + Location
-
-
+    
+    CommonDialog1.ShowSave
+    Open CommonDialog1.filename For Output As #1
 
     Print #1, NomeFile
     Print #1, "Pentola P01 measurement file"
@@ -444,22 +450,27 @@ Private Sub bLoad_Click()
     Open CommonDialog1.filename For Input As #1
     On Error GoTo fine
     Do
-        
+
         Input #1, Linea
         Stringa = Left(Linea, 8)
-    Loop Until Stringa = "Location"
+    Loop Until Stringa = "Location" Or Stringa = "Spectrom"
     Location = Mid(Linea, 9, Len(Linea) - 8)
     lPointName.Caption = "Point:" + Location
     lFileName.Caption = GetNameFromDir(CommonDialog1.filename)
     Do
         Input #1, Linea
         Stringa = Left(Linea, 7)
-    Loop Until Stringa = "Samples"
-    Stringa = Mid(Linea, 10, Len(Linea) - 9)
-    Samples = Val(Stringa)
+    Loop Until Stringa = "Samples" Or Stringa = "Measure"
+    If Stringa = "Samples" Then
+            Stringa = Mid(Linea, 10, Len(Linea) - 9)
+            Samples = Val(Stringa)
+        
+        Else
+            Samples = 2000
+    End If
     ReDim CO2MeasAr(Samples - 1, 1)
     Input #1, Linea
-    'On Error GoTo continua
+    On Error GoTo continua
     For i = 0 To Samples - 1 'UBound(CO2MeasAr)
         Line Input #1, Linea
         index = InStr(Linea, ";")
@@ -490,6 +501,8 @@ fine:
     Exit Sub
 continua:
 'ReDim CO2MeasAr(i, 1)
+'i = Samples
+Samples = i - 1
 i = Samples
 Resume Next
 End Sub
@@ -550,10 +563,22 @@ Private Sub bStart_Click()
             FattoreScheda = 0.3
             FondoScala = 3000
             Scala = 100 / FondoScala
+        Case "Mastrolia 10000"
+            FondoScala = 10000
+            Scala = 100 / FondoScala
+'            WestA = CDbl(FondoScala) / (4096 - 819.2)
+'            WestB = -WestA * 819.2
+            CommType = "Mastrolia"
+        Case "Mastrolia 100%"
+            FondoScala = 1000000
+            Scala = 100 / FondoScala
+'            WestA = CDbl(FondoScala) / (4096 - 819.2)
+'            WestB = -WestA * 819.2
+            CommType = "Mastrolia"
+
+
     End Select
     
-    'Scala = 0.01 '2000 / 100
-    'AFTimer1.Interval = 1
     MeasStarted = True
     FirstClickOnGraph = False
     MeasSaved = False
@@ -567,6 +592,9 @@ Private Sub bStart_Click()
     'MSChart1.ChartData = Dati
     'MSChart1.Repaint = True
     MSChart1.ChartData = CO2MeasAr
+    
+    
+    'Start of readings on Gascard II
     
     Stringa = InputComTimeOut(5)
     'Debug.Print "1 "; Stringa
@@ -596,11 +624,6 @@ Private Sub bStart_Click()
     End If
 
     'Debug.Print "Ready to Start"
-    'mscomm1.Output = vbCrLf
-'    For x = 1 To 100
-'        'AFGraphic1.SetPixel(x, x, 1)
-'        AFGraphic1.SetPixel x, x, 1
-'    Next
     
     'AFGraphic1.Cls
     OnComm = True
@@ -611,44 +634,45 @@ Private Sub bStart_Click()
     StartTime = Timer
     MeasTime = 0
     CO2Index = 0
-    Do
-        Linea = InputComTimeOut(5)
-        'Debug.Print Len(Linea)
-        'Salta le linee incomplete
-        If Len(Linea) < 41 Then GoTo NextLine
-        'Prende i primi 4 caratteri che rappresentano la misura
-        'Dopo che la scheda è stata opportunamente settata prima.
-        Stringa = Left$(Linea, 4)
-        CO2hex = "&H" & 0 & Trim(Stringa) ' Mid$(Linea, CrLfIndex - 4, 4)
-        'Lo zero serve ad evitare che CSng si impalli per una stringa nulla
-        
-        'Debug.Print CO2hex; vbTab;
-        'If CLng(Stringa) = 0 Then
-        '    CO2 = 0
-        'Else
-        CO2 = CSng(CO2hex)
-        'End If
-        'Debug.Print CO2 '; vbTab;
-        'Debug.Print CO2 & " ";
-        CO2 = CO2 * FattoreScheda '/ 10000 '0.01 '/ 10000 * 100
-        'Debug.Print CO2
-        'CO2Meas(CO2Index) = CO2
-        CO2MeasAr(CO2Index, 0) = MeasTime
-        MeasTime = MeasTime + 0.125
-        CO2MeasAr(CO2Index, 1) = CSng(CO2)
-        Debug.Print CO2MeasAr(CO2Index, 0), CO2MeasAr(CO2Index, 1)
-        CO2Index = CO2Index + 1
-        'DatiGrafico(iGrafico) = Int(CO2 * Scala)
-        'Debug.Print DatiGrafico(iGrafico)
-        'iGrafico = iGrafico + 1
-        'AFGraphic1.SetPixel iGrafico, 100 - DatiGrafico(iGrafico - 1), 1
-        'AFlTime.Caption = Int((Timer - StartTime) / 1000)
-        lCoord.Caption = CO2
-        MSChart1.ChartData = CO2MeasAr
-        DoEvents
-        'CheckGraph     'Questa routine dovrebbe visualizzare gli ultimi dati
+
+        Do
+            Linea = InputComTimeOut(5)
+            'Debug.Print Len(Linea)
+            'Salta le linee incomplete
+            If Len(Linea) < 41 Then GoTo NextLine
+            'Prende i primi 4 caratteri che rappresentano la misura
+            'Dopo che la scheda è stata opportunamente settata prima.
+            Stringa = Left$(Linea, 4)
+            CO2hex = "&H" & 0 & Trim(Stringa) ' Mid$(Linea, CrLfIndex - 4, 4)
+            'Lo zero serve ad evitare che CSng si impalli per una stringa nulla
+            
+            'Debug.Print CO2hex; vbTab;
+            'If CLng(Stringa) = 0 Then
+            '    CO2 = 0
+            'Else
+                 CO2 = CSng(CO2hex)
+            'End If
+            'Debug.Print CO2 '; vbTab;
+            'Debug.Print CO2 & " ";
+            CO2 = CO2 * FattoreScheda '/ 10000 '0.01 '/ 10000 * 100
+            'Debug.Print CO2
+            'CO2Meas(CO2Index) = CO2
+            CO2MeasAr(CO2Index, 0) = MeasTime
+            MeasTime = MeasTime + 0.125
+            CO2MeasAr(CO2Index, 1) = CSng(CO2)
+            Debug.Print CO2MeasAr(CO2Index, 0), CO2MeasAr(CO2Index, 1)
+            CO2Index = CO2Index + 1
+            'DatiGrafico(iGrafico) = Int(CO2 * Scala)
+            'Debug.Print DatiGrafico(iGrafico)
+            'iGrafico = iGrafico + 1
+            'AFGraphic1.SetPixel iGrafico, 100 - DatiGrafico(iGrafico - 1), 1
+            'AFlTime.Caption = Int((Timer - StartTime) / 1000)
+            lCoord.Caption = CO2
+            MSChart1.ChartData = CO2MeasAr
+            DoEvents
+            'CheckGraph     'Questa routine dovrebbe visualizzare gli ultimi dati
 NextLine:
-    Loop Until OnComm = False
+        Loop Until OnComm = False
     
     Exit Sub
 GestioneErrore:
@@ -678,16 +702,20 @@ End Sub
 
 Private Sub bYmin_Click()
     Dim min As Integer
+    On Error GoTo fine
     min = InputBox("Minimum Y")
     MSChart1.Plot.Axis(VtChAxisIdY).ValueScale.Auto = False
     MSChart1.Plot.Axis(VtChAxisIdY).ValueScale.Minimum = min
+fine:
 End Sub
 
 Private Sub bYmax_Click()
     Dim max As Integer
+    On Error GoTo fine
     max = InputBox("Maximum Y")
     MSChart1.Plot.Axis(VtChAxisIdY).ValueScale.Auto = False
     MSChart1.Plot.Axis(VtChAxisIdY).ValueScale.Maximum = max
+fine:
 End Sub
 
 Private Sub bYauto_Click()
@@ -696,16 +724,20 @@ End Sub
 
 Private Sub bXmin_Click()
     Dim min As Integer
+    On Error GoTo fine
     min = InputBox("Minimum X")
     MSChart1.Plot.Axis(VtChAxisIdX).ValueScale.Auto = False
     MSChart1.Plot.Axis(VtChAxisIdX).ValueScale.Minimum = min
+fine:
 End Sub
 
 Private Sub bXmax_Click()
     Dim max As Integer
+    On Error GoTo fine
     max = InputBox("Maximum X")
     MSChart1.Plot.Axis(VtChAxisIdX).ValueScale.Auto = False
     MSChart1.Plot.Axis(VtChAxisIdX).ValueScale.Maximum = max
+fine:
 End Sub
 
 Private Sub bXauto_Click()

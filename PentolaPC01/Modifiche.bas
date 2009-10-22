@@ -18,3 +18,16 @@ Attribute VB_Name = "Modifiche"
 
 '2008 01 22
 'Aggiunta la gestione della scheda 10%
+
+'2008 03 19
+'Inizio Aggiunta la gestione della scheda Mastrolia
+
+'2009 10 20
+'Aggiunta gestione errori in
+'xmax xmin ymax e ymin del grafico
+'I grafici non vengono ricaricati!!!!
+'Errore semicorretto. LA gestione prevede un formato file diverso da
+'quello che viene salvato
+'No, viene salvato il file giusto forse la colpa è in long record
+'Tutto corretto, ora carica sia i file corti che quelli long
+'Aggiunta la generazione del nome del file di salvataggio in automatico

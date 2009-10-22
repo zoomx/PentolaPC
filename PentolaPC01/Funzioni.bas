@@ -389,5 +389,16 @@ Public Sub NewPath(Stringa As String)
     ChDrive (Left(Stringa, 3))
     ChDir (Stringa)
 End Sub
+Public Function adc2value(Valore_ADC As Long, Bitmin As Long, _
+Bitmax As Long, valMax As Double, valMin As Double, valOff _
+As Double) As Double
+'From ADCount to Value
+
+    Dim Valore As Double
+    Valore = (Valore_ADC - Bitmin) / (Bitmax - Bitmin) * _
+    (valMax - valMin) + valMin + valOff
+    adc2value = Valore
+    'Debug.Print "adc2value-->"; Valore
+End Function
 
 
